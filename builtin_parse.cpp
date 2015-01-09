@@ -1,3 +1,7 @@
+#include <cstdlib>
+#include <sstream>
+#include <inttypes.h>
+
 #include "builtin_parse.h"
 
 using std::string;
@@ -5,47 +9,43 @@ using std::string;
 namespace codemaster
 {
 
-template <>
-bool BuiltinParse<int>::operator()(const string& str, int& value) noexcept
+BUILTINPARSE_TEMPLATE_SPECIALIZE(int)
 {
-    try {
-        value = std::stoi(str);
-        return true;
-    }
-    catch (...) {
+    if(str.empty() ||
+             (!isdigit(str[0]) &&
+             (str[0] != '-') &&
+             (str[0] != '+')))
+    {
         return false;
     }
-}
-
-template <>
-bool BuiltinParse<float>::operator()(const string& str, float& value) noexcept
-{
-    try {
-        value = std::stof(str);
+    char * p;
+    strtol(str.c_str(), &p, 10);
+    if (*p == 0)
+    {
+        try {
+            value = std::stoi(str);
+        } catch (...) {
+            return false;
+        }
         return true;
     }
-    catch (...) {
-        return false;
-    }
+    return false;
 }
 
-template <>
-bool BuiltinParse<double>::operator()(const string& str, double& value) noexcept
+BUILTINPARSE_TEMPLATE_SPECIALIZE(std::string)
 {
-    try {
-        value = std::stod(str);
-        return true;
-    }
-    catch (...) {
-        return false;
-    }
-}
-
-
-template <>
-bool BuiltinParse<string>::operator()(const string& str, string& value) noexcept
-{
+    if (str.empty()) return false;
     value = str;
+    return true;
+}
+
+BUILTINPARSE_TEMPLATE_SPECIALIZE(long)
+{
+    char *rem = NULL;
+    long tmp = strtoimax(str.c_str(), &rem, 0);
+    if (*rem != '\0') return false;
+    if ((tmp == INT_MIN || tmp == INT_MAX) && errno == ERANGE) return false;
+    value = tmp;
     return true;
 }
 

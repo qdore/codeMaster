@@ -3,21 +3,12 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+
+#include "config.h"
 
 namespace codemaster
 {
-
-template <typename T>
-std::string to_string(const T& val)
-{
-    return std::to_string(val);
-}
-
-template <>
-std::string to_string(const std::string& val)
-{
-    return val;
-}
 
 class Item
 {
@@ -28,6 +19,8 @@ public:
     virtual std::string to_string() const noexcept = 0;
     virtual std::string get_catagery() const noexcept = 0;
     virtual const void* get_value() const noexcept = 0;
+private:
+    DISALLOW_COPY_AND_ASSIGN(Item);
 };
 
 template <typename T>
@@ -40,7 +33,9 @@ public:
 public:
     std::string to_string() const noexcept
     {
-        return codemaster::to_string(_val);
+        std::ostringstream out;
+        out << _val;
+        return out.str();
     }
     std::string get_catagery() const noexcept
     {
@@ -53,6 +48,7 @@ public:
 private:
     std::string _catagery;
     T _val;
+    DISALLOW_COPY_AND_ASSIGN(ParseredItem);
 };
 
 template <typename T>
@@ -69,7 +65,9 @@ public:
         std::string ret("{");
         for (const auto& singel_item : _val)
         {
-            ret += codemaster::to_string(singel_item);
+            std::ostringstream out;
+            out << singel_item;
+            ret += out.str();
             ret += ", ";
         }
         ret.resize(ret.size() - 2);
@@ -87,6 +85,7 @@ public:
 private:
     std::string _catagery;
     std::vector<T> _val;
+    DISALLOW_COPY_AND_ASSIGN(ParseredItem);
 };
 
 }

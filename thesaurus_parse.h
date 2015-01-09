@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <exception>
+
 #include "word_parser.h"
 
 namespace codemaster
@@ -26,11 +27,11 @@ public:
     void parse_row();
     bool has_next_row() const noexcept;
     void add_parser(const std::shared_ptr<Parser>& parser) noexcept;
-    void set_scheme(const std::string& scheme);
+    void set_scheme(const std::string& scheme) noexcept;
     std::string get_scheme() const noexcept;
-
 private:
-    void parse_word_by_parser(const std::string& word, const std::string& parser) const noexcept;
+    void parse_word_by_parser(const std::string& word,
+            const std::string& parser) const noexcept;
     std::shared_ptr<std::istream> in;
     str_parser_map _parsers;
     std::vector<std::string> _scheme;

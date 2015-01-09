@@ -1,4 +1,6 @@
 #include <fstream>
+#include <iomanip>
+
 #include "thesaurus_parse.h"
 #include "builtin_parse.h"
 #include "config.h"
@@ -9,15 +11,23 @@ using std::string;
 namespace codemaster
 {
 
-inline void print_warning(const std::string& message)
+static inline void print_warning(const std::string& message)
 {
     std::cerr << "waring: [" << __FILE__ << ":" << __FUNCTION__\
         << "+" << __LINE__ << "]: " << message << std::endl;
 }
 
-inline void print_parse_succend_message(const std::string& message)
+static inline void print_parse_succend_message(const std::shared_ptr<Item> message)
 {
-    
+    std::cout << "It may be "<< std::setw(10) << message->get_catagery()
+       << '\t' << "=>" << '\t' << message->to_string() << std::endl;
+}
+
+static inline void print_get_word(const std::string& word,
+        const std::string& scheme)
+{
+    std::cout << "Get word (" << word << ")\t" << "Scheme: " << scheme 
+        << std::endl << "====================" << std::endl;
 }
 
 ThesaurusParse::ThesaurusParse() noexcept
@@ -52,7 +62,7 @@ void ThesaurusParse::add_parser(const std::shared_ptr<Parser>& parser) noexcept
     _parsers.insert({parser->get_catagery(), parser});
 }
 
-void ThesaurusParse::set_scheme(const string& scheme)
+void ThesaurusParse::set_scheme(const string& scheme) noexcept
 {
     std::istringstream scheme_in(scheme);
     string word_scheme;
@@ -63,6 +73,7 @@ void ThesaurusParse::set_scheme(const string& scheme)
         if (word_scheme == ANY_PARSER_INDICATOR) 
         {
             _scheme.push_back(std::move(word_scheme));
+            continue;
         }
         if (_parsers.find(word_scheme) == _parsers.end())
         {
@@ -99,17 +110,29 @@ void ThesaurusParse::parse_row()
     while (string_in)
     {
         std::getline(string_in, current_word, THESAURUS_COLUMN_DELIM);
+        trim(current_word);
         if (index >= _scheme.size())
         {
             _scheme.push_back(ANY_PARSER_INDICATOR);
         }
+        if (current_word.empty())
+        {
+            if (string_in)
+            {
+                print_warning("get null word!");
+                index++;
+            }
+            continue;
+        }
+        print_get_word(current_word, _scheme[index]);
         parse_word_by_parser(current_word, _scheme[index]);
         current_word.clear();
         ++index;
     }
 }
 
-void ThesaurusParse::parse_word_by_parser(const string& word, const string& parser) const noexcept
+void ThesaurusParse::parse_word_by_parser(const string& word,
+        const string& parser) const noexcept
 {
     if (parser == ANY_PARSER_INDICATOR)
     {
@@ -119,7 +142,7 @@ void ThesaurusParse::parse_word_by_parser(const string& word, const string& pars
             auto parsered_item = word_parser->parse(word);
             if (parsered_item.get() != nullptr)
             {
-                print_parse_succend_message(word_parser->get_catagery());
+                print_parse_succend_message(parsered_item);
             }
         }
     }
@@ -129,10 +152,26 @@ void ThesaurusParse::parse_word_by_parser(const string& word, const string& pars
         auto parsered_item = word_parser->parse(word);
         if (parsered_item.get() != nullptr)
         {
-            print_parse_succend_message(word_parser->get_catagery());
+            print_parse_succend_message(parsered_item);
+        }
+        else
+        {
+            std::string warning_message("It cannot be parsed by ");
+            warning_message += word_parser->get_catagery();
+            print_warning(warning_message);
         }
     }
 }
 
+std::string ThesaurusParse::get_scheme() const noexcept
+{
+    string ret;
+    for (const auto& str : _scheme)
+    {
+        ret += str;
+        ret += " ";
+    }
+    return ret;
 }
 
+}
