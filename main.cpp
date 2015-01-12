@@ -1,5 +1,5 @@
 #include "thesaurus_parse.h"
-#include "example/example.h"
+#include "example/name.h"
 
 using std::cin;
 using std::cout;
@@ -19,9 +19,9 @@ try
 {
     codemaster::ThesaurusParse thesaurus;
     //add new parser: example
-    thesaurus.add_parser(codemaster::make_parser("example", ext::Example::parse));
+    thesaurus.add_parser(codemaster::make_parser("name", example::Name::parse));
     //set scheme
-    thesaurus.set_scheme("* example int string");
+    thesaurus.set_scheme("* name int string");
     cout << "Seted scheme: \" " << thesaurus.get_scheme() << "\"" << endl;
     if (argc < 2)
     {

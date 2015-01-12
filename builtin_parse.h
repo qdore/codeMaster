@@ -3,10 +3,7 @@
 
 #include <string>
 #include <sstream>
-
-#define BUILTINPARSE_TEMPLATE_SPECIALIZE(type) template <>\
-    bool BuiltinParse<type>::operator()(const std::string& str,\
-                                        type& value) noexcept
+#include "../include/lexical_cast.hpp"
 
 namespace codemaster
 {
@@ -20,25 +17,18 @@ public:
 public:
     bool operator()(const std::string& str, T& value) noexcept
     {
-        if (str.empty()) return false;
-        std::istringstream in(str);
-        try {
-            in >> value;
-            if (in.eof())
-            {
-                return true;
-            }
+        if (str.empty()) 
+        {
             return false;
         }
-        catch (...) {
+        try {
+            value = boost::lexical_cast<T>(str);
+            return true;
+        } catch (...) {
             return false;
         }
     }
 };
-
-BUILTINPARSE_TEMPLATE_SPECIALIZE(int);
-BUILTINPARSE_TEMPLATE_SPECIALIZE(std::string);
-BUILTINPARSE_TEMPLATE_SPECIALIZE(long);
 
 }
 
